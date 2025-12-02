@@ -1,5 +1,5 @@
 # go-bip39
-[![Build Status](https://travis-ci.org/fbsobreira/go-bip39.svg?branch=master)](https://travis-ci.org/fbsobreira/go-bip39)
+[![CI](https://github.com/fbsobreira/go-bip39/actions/workflows/ci.yml/badge.svg)](https://github.com/fbsobreira/go-bip39/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/fbsobreira/go-bip39.svg?maxAge=2592000)](https://github.com/fbsobreira/go-bip39/blob/master/LICENSE)
 [![Documentation](https://godoc.org/github.com/fbsobreira/go-bip39?status.svg)](http://godoc.org/github.com/fbsobreira/go-bip39)
 [![Go Report Card](https://goreportcard.com/badge/github.com/fbsobreira/go-bip39)](https://goreportcard.com/report/github.com/fbsobreira/go-bip39)
@@ -7,6 +7,8 @@
 
 
 A golang implementation of the BIP0039 spec for mnemonic seeds
+
+> **Note:** This is a preserved copy of the original `github.com/tyler-smith/go-bip39` repository, which is no longer available.
 
 ## Example
 
