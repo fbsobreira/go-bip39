@@ -1,8 +1,10 @@
 package bip39
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"sync"
 	"testing"
 
 	"github.com/fbsobreira/go-bip39/wordlists"
@@ -127,12 +129,12 @@ func TestPadByteSlice(t *testing.T) {
 	assertEqualByteSlices(t, []byte{1, 1, 1}, padByteSlice([]byte{1, 1, 1}, 2))
 }
 
-func TestCompareByteSlices(t *testing.T) {
-	assertTrue(t, compareByteSlices([]byte{}, []byte{}))
-	assertTrue(t, compareByteSlices([]byte{1}, []byte{1}))
-	assertFalse(t, compareByteSlices([]byte{1}, []byte{0}))
-	assertFalse(t, compareByteSlices([]byte{1}, []byte{}))
-	assertFalse(t, compareByteSlices([]byte{1}, nil))
+func TestBytesEqual(t *testing.T) {
+	assertTrue(t, bytes.Equal([]byte{}, []byte{}))
+	assertTrue(t, bytes.Equal([]byte{1}, []byte{1}))
+	assertFalse(t, bytes.Equal([]byte{1}, []byte{0}))
+	assertFalse(t, bytes.Equal([]byte{1}, []byte{}))
+	assertFalse(t, bytes.Equal([]byte{1}, nil))
 }
 
 func TestMnemonicToByteArrayForZeroLeadingSeeds(t *testing.T) {
@@ -489,4 +491,72 @@ func assertEqualByteSlices(t *testing.T, a, b []byte) {
 			return
 		}
 	}
+}
+
+// TestConcurrentMnemonicGeneration tests that mnemonic generation is thread-safe.
+func TestConcurrentMnemonicGeneration(t *testing.T) {
+	var wg sync.WaitGroup
+	iterations := 100
+	wg.Add(iterations)
+
+	for i := 0; i < iterations; i++ {
+		go func() {
+			defer wg.Done()
+
+			entropy, err := NewEntropy(128)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			mnemonic, err := NewMnemonic(entropy)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !IsMnemonicValid(mnemonic) {
+				t.Errorf("Generated mnemonic is invalid: %s", mnemonic)
+			}
+		}()
+	}
+
+	wg.Wait()
+}
+
+// TestConcurrentEntropyFromMnemonic tests that entropy extraction is thread-safe.
+func TestConcurrentEntropyFromMnemonic(t *testing.T) {
+	var wg sync.WaitGroup
+	iterations := 100
+	wg.Add(iterations)
+
+	for i := 0; i < iterations; i++ {
+		go func() {
+			defer wg.Done()
+
+			entropy, err := NewEntropy(256)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			mnemonic, err := NewMnemonic(entropy)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			recovered, err := EntropyFromMnemonic(mnemonic)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !bytes.Equal(entropy, recovered) {
+				t.Error("Recovered entropy does not match original")
+			}
+		}()
+	}
+
+	wg.Wait()
 }
